@@ -68,7 +68,7 @@ angular.module('mm.core.login')
     }
 
     $scope.signup = function() {
-        $mmUtil.openInBrowser("https://learn.moodle.net/login/signup.php");
+        $mmUtil.openInBrowser("http://130.211.144.199/");
     }
 
     $scope.login = function() {

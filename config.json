@@ -8,6 +8,6 @@
     "wsservice" : "moodle_mobile_app",
     "wsextservice" : "local_mobile",
     "demo_sites": {},
-    "siteurl": "http://130.211.144.199/",
+    "siteurl": "http://130.211.144.199",
     "gcmpn": "learn-moodle-1159"
 }
