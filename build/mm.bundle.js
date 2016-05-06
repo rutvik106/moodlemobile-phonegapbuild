@@ -7172,7 +7172,7 @@ angular.module('mm.core.login')
         siteChecked = true;
     }
     $scope.signup = function() {
-        $mmUtil.openInBrowser("https://learn.moodle.net/login/signup.php");
+        $mmUtil.openInBrowser("http://130.211.144.199/");
     }
     $scope.login = function() {
         $mmApp.closeKeyboard();
@@ -15554,16 +15554,16 @@ angular.module('mm.addons.remotestyles')
 angular.module('mm.core')
 
 .constant('mmCoreConfigConstants', {
-    "app_id" : "net.moodle.learn",
-    "versioncode" : "2",
-    "versionname" : "1.1",
+    "app_id" : "com.prozm.moodlemobile",
+    "versioncode" : "1",
+    "versionname" : "1.0",
     "cache_expiration_time" : 300000,
     "default_lang" : "en",
     "languages": {"ar": "عربي", "bg": "Български", "ca": "Català", "cs": "Čeština", "de": "Deutsch","en": "English", "es": "Español", "es-mx": "Español - México", "eu": "Euskara", "fa": "فارسی", "fr" : "Français", "he" : "עברית", "hu": "magyar", "it": "Italiano", "ja": "日本語","nl": "Nederlands", "pl": "Polski", "pt-br": "Português - Brasil", "ru": "Русский", "sv": "Svenska", "tr" : "Türkçe", "zh-cn" : "简体中文", "zh-tw" : "正體中文"},
     "wsservice" : "moodle_mobile_app",
     "wsextservice" : "local_mobile",
     "demo_sites": {},
-    "siteurl": "https://learn.moodle.net/",
+    "siteurl": "http://130.211.144.199/",
     "gcmpn": "learn-moodle-1159"
 }
 );

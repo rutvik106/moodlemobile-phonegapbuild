@@ -423,7 +423,7 @@ angular.module('mm.core')
             data = data || {};
 
             // Get the method to use based on the available ones.
-            method = site.getCompatibleFunction(method);
+            method = getCompatibleFunction(site, method);
 
             // Check if the method is available, use a prefixed version if possible.
             // We ignore this check when we do not have the site info, as the list of functions is not loaded yet.
@@ -766,7 +766,7 @@ angular.module('mm.core')
             }
             var siteurl = $mmText.removeProtocolAndWWW(this.siteurl);
             url = $mmText.removeProtocolAndWWW(url);
-            return url.indexOf(siteurl) == 0;
+            return url.indexOf(siteurl) > -1;
         };
 
         /**
@@ -790,13 +790,14 @@ angular.module('mm.core')
          * Return the function to be used, based on the available functions in the site. It'll try to use non-deprecated
          * functions first, and fallback to deprecated ones if needed.
          *
+         * @param  {Object} site   Site to check.
          * @param  {String} method WS function to check.
          * @return {String}        Method to use based in the available functions.
          */
-        Site.prototype.getCompatibleFunction = function(method) {
+        function getCompatibleFunction(site, method) {
             if (typeof deprecatedFunctions[method] !== "undefined") {
                 // Deprecated function is being used. Warn the developer.
-                if (this.wsAvailable(deprecatedFunctions[method])) {
+                if (site.wsAvailable(deprecatedFunctions[method])) {
                     $log.warn("You are using deprecated Web Services: " + method +
                         " you must replace it with the newer function: " + deprecatedFunctions[method]);
                     return deprecatedFunctions[method];
@@ -804,10 +805,10 @@ angular.module('mm.core')
                     $log.warn("You are using deprecated Web Services. " +
                         "Your remote site seems to be outdated, consider upgrade it to the latest Moodle version.");
                 }
-            } else if (!this.wsAvailable(method)) {
+            } else if (!site.wsAvailable(method)) {
                 // Method not available. Check if there is a deprecated method to use.
                 for (var oldFunc in deprecatedFunctions) {
-                    if (deprecatedFunctions[oldFunc] === method && this.wsAvailable(oldFunc)) {
+                    if (deprecatedFunctions[oldFunc] === method && site.wsAvailable(oldFunc)) {
                         $log.warn("Your remote site doesn't support the function " + method +
                             ", it seems to be outdated, consider upgrade it to the latest Moodle version.");
                         return oldFunc; // Use deprecated function.
@@ -815,7 +816,7 @@ angular.module('mm.core')
                 }
             }
             return method;
-        };
+        }
 
         /**
          * Get a WS response from cache.

@@ -416,13 +416,12 @@ angular.module('mm.core.courses')
      * @module mm.core.courses
      * @ngdoc method
      * @name $mmCourses#selfEnrol
-     * @param {String} courseid     Course ID.
-     * @param {String} [password]   Password to use.
-     * @param {Number} [instanceId] Enrol instance ID.
-     * @return {Promise}            Promise resolved if the user is enrolled. If the password is invalid,
-     *                              the promise is rejected with an object with code = mmCoursesEnrolInvalidKey.
+     * @param {String} courseid Course ID.
+     * @param {String} password Password to use.
+     * @return {Promise}        Promise resolved if the user is enrolled. If the password is invalid,
+     *                          the promise is rejected with an object with code = mmCoursesEnrolInvalidKey.
      */
-    self.selfEnrol = function(courseid, password, instanceId) {
+    self.selfEnrol = function(courseid, password) {
         if (typeof password == 'undefined') {
             password = '';
         }
@@ -431,9 +430,6 @@ angular.module('mm.core.courses')
             courseid: courseid,
             password: password
         };
-        if (instanceId) {
-            params.instanceid = instanceId;
-        }
 
         return $mmSite.write('enrol_self_enrol_user', params).then(function(response) {
             if (response) {

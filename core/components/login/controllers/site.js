@@ -25,6 +25,23 @@ angular.module('mm.core.login')
         $ionicModal, $mmLoginHelper) {
 
     $scope.siteurl = '';
+    $scope.isInvalidUrl = true;
+
+    $scope.validate = function(url) {
+        if (!url) {
+            $scope.isInvalidUrl = true;
+            return;
+        }
+
+        if ($mmSitesManager.getDemoSiteData(url)) {
+            // Is demo site.
+            $scope.isInvalidUrl = false;
+        } else {
+            // formatURL adds the protocol if is missing.
+            var formattedurl = $mmUtil.formatURL(url);
+            $scope.isInvalidUrl = formattedurl.indexOf('://localhost') == -1 && !$mmUtil.isValidURL(formattedurl);
+        }
+    };
 
     $scope.connect = function(url) {
 
@@ -43,7 +60,7 @@ angular.module('mm.core.login')
             $mmSitesManager.getUserToken(sitedata.url, sitedata.username, sitedata.password).then(function(data) {
                 $mmSitesManager.newSite(data.siteurl, data.token).then(function() {
                     $ionicHistory.nextViewOptions({disableBack: true});
-                    return $mmLoginHelper.goToSiteInitialPage();
+                    $state.go('site.mm_courses');
                 }, function(error) {
                     $mmUtil.showErrorModal(error);
                 }).finally(function() {

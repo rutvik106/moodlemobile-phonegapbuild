@@ -29,74 +29,58 @@ angular.module('mm.core.courses')
         guestWSAvailable = $mmCourses.isGuestWSAvailable(),
         isGuestEnabled = false,
         guestInstanceId,
-        handlersShouldBeShown = true,
-        enrollmentMethods;
+        handlersShouldBeShown = true;
 
     $scope.course = course;
     $scope.title = course.fullname;
     $scope.component = mmCoursesSearchComponent;
-    $scope.selfEnrolInstances = [];
-    $scope.enroldata = {
-        password: ''
-    };
 
     // Function to determine if handlers are being loaded.
     $scope.loadingHandlers = function() {
         return handlersShouldBeShown && !$mmCoursesDelegate.areNavHandlersLoadedFor(course.id);
     };
 
+    if (selfEnrolWSAvailable || guestWSAvailable) {
+        // Self enrol WS is available, check if the course supports self enrolment.
+        angular.forEach(course.enrollmentmethods, function(method) {
+            if (method === 'self' && selfEnrolWSAvailable) {
+                $scope.selfEnrolEnabled = true;
+                $scope.enroldata = {
+                    password: ''
+                };
+            } else if (method === 'guest' && guestWSAvailable) {
+                isGuestEnabled = true;
+            }
+        });
+    }
+
     // Convenience function to get course. We use this to determine if a user can see the course or not.
     function getCourse(refresh) {
-        var promise;
-        if (selfEnrolWSAvailable || guestWSAvailable) {
-            // Get course enrolment methods.
-            $scope.selfEnrolInstances = [];
-            promise = $mmCourses.getCourseEnrolmentMethods(course.id).then(function(methods) {
-                enrollmentMethods = methods;
-
-                angular.forEach(enrollmentMethods, function(method) {
-                    if (selfEnrolWSAvailable && method.type === 'self') {
-                        $scope.selfEnrolInstances.push(method);
-                    } else if (guestWSAvailable && method.type === 'guest') {
-                        isGuestEnabled = true;
-                    }
-                });
-            }).catch(function(error) {
-                if (error) {
-                    $mmUtil.showErrorModal(error);
-                }
-            });
-        } else {
-            promise = $q.when(); // No need to get enrolment methods.
-        }
-
-        return promise.then(function() {
-            // Check if user is enrolled in the course.
-            return $mmCourses.getUserCourse(course.id).then(function(c) {
-                $scope.isEnrolled = true;
-                return c;
-            }).catch(function() {
-                // The user is not enrolled in the course. Use getCourses to see if it's an admin/manager and can see the course.
-                $scope.isEnrolled = false;
-                return $mmCourses.getCourse(course.id);
-            }).then(function(c) {
-                // Success retrieving the course, we can assume the user has permissions to view it.
-                course.fullname = c.fullname || course.fullname;
-                course.summary = c.summary || course.summary;
-                course._handlers = $mmCoursesDelegate.getNavHandlersFor(course.id, refresh);
-            }).catch(function() {
-                // The user is not an admin/manager. Check if we can provide guest access to the course.
-                return canAccessAsGuest().then(function(passwordRequired) {
-                    if (!passwordRequired) {
-                        course._handlers = $mmCoursesDelegate.getNavHandlersForGuest(course.id, refresh);
-                    } else {
-                        course._handlers = [];
-                        handlersShouldBeShown = false;
-                    }
-                }).catch(function() {
+        // Check if user is enrolled in the course.
+        return $mmCourses.getUserCourse(course.id).then(function(c) {
+            $scope.isEnrolled = true;
+            return c;
+        }).catch(function() {
+            // The user is not enrolled in the course. Use getCourses to see if it's an admin/manager and can see the course.
+            $scope.isEnrolled = false;
+            return $mmCourses.getCourse(course.id);
+        }).then(function(c) {
+            // Success retrieving the course, we can assume the user has permissions to view it.
+            course.fullname = c.fullname || course.fullname;
+            course.summary = c.summary || course.summary;
+            course._handlers = $mmCoursesDelegate.getNavHandlersFor(course.id, refresh);
+        }).catch(function() {
+            // The user is not an admin/manager. Check if we can provide guest access to the course.
+            return canAccessAsGuest().then(function(passwordRequired) {
+                if (!passwordRequired) {
+                    course._handlers = $mmCoursesDelegate.getNavHandlersForGuest(course.id, refresh);
+                } else {
                     course._handlers = [];
                     handlersShouldBeShown = false;
-                });
+                }
+            }).catch(function() {
+                course._handlers = [];
+                handlersShouldBeShown = false;
             });
         });
     }
@@ -107,23 +91,26 @@ angular.module('mm.core.courses')
             return $q.reject();
         }
 
+        // Get course enrolment methods to get the instance ID.
+        return $mmCourses.getCourseEnrolmentMethods(course.id).then(function(methods) {
             // Search instance ID of guest enrolment method.
-        angular.forEach(enrollmentMethods, function(method) {
-            if (method.type == 'guest') {
-                guestInstanceId = method.id;
-            }
-        });
-
-        if (guestInstanceId) {
-            return $mmCourses.getCourseGuestEnrolmentInfo(guestInstanceId).then(function(info) {
-                if (!info.status) {
-                    // Not active, reject.
-                    return $q.reject();
+            angular.forEach(methods, function(method) {
+                if (method.type == 'guest') {
+                    guestInstanceId = method.id;
                 }
-                return info.passwordrequired;
             });
-        }
-        return $q.reject();
+
+            if (guestInstanceId) {
+                return $mmCourses.getCourseGuestEnrolmentInfo(guestInstanceId).then(function(info) {
+                    if (!info.status) {
+                        // Not active, reject.
+                        return $q.reject();
+                    }
+                    return info.passwordrequired;
+                });
+            }
+            return $q.reject();
+        });
     }
 
     function refreshData() {
@@ -151,7 +138,7 @@ angular.module('mm.core.courses')
         });
     };
 
-    if (selfEnrolWSAvailable && course.enrollmentmethods.indexOf('self') > -1) {
+    if ($scope.selfEnrolEnabled) {
         // Setup password modal for self-enrolment.
         $ionicModal.fromTemplateUrl('core/components/courses/templates/password-modal.html', {
             scope: $scope,
@@ -161,7 +148,6 @@ angular.module('mm.core.courses')
 
             $scope.closeModal = function() {
                 $scope.enroldata.password = '';
-                delete $scope.currentEnrolInstance;
                 modal.hide();
             };
             $scope.$on('$destroy', function() {
@@ -170,7 +156,7 @@ angular.module('mm.core.courses')
         });
 
         // Convenience function to self-enrol a user in a course.
-        $scope.enrol = function(instanceId, password) {
+        $scope.enrol = function(password) {
             var promise;
 
             if ($scope.modal.isShown()) {
@@ -183,7 +169,7 @@ angular.module('mm.core.courses')
             promise.then(function() {
                 var modal = $mmUtil.showModalLoading('mm.core.loading', true);
 
-                $mmCourses.selfEnrol(course.id, password, instanceId).then(function() {
+                $mmCourses.selfEnrol(course.id, password).then(function() {
                     // Close modal and refresh data.
                     $scope.closeModal();
                     $scope.isEnrolled = true;
@@ -198,7 +184,6 @@ angular.module('mm.core.courses')
                             if ($scope.modal.isShown()) {
                                 $mmUtil.showErrorModal(error.message);
                             } else {
-                                $scope.currentEnrolInstance = instanceId;
                                 $scope.modal.show();
                             }
                         } else if (typeof error == 'string') {
