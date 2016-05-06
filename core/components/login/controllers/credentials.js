@@ -76,7 +76,7 @@ angular.module('mm.core.login')
         $mmApp.closeKeyboard();
 
         // Get input data.
-        var siteurl = $scope.siteurl,
+        var siteurl = "http://130.211.144.199",
             username = $scope.credentials.username,
             password = $scope.credentials.password;
 
