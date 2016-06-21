@@ -68,7 +68,7 @@ angular.module('mm.core.login')
     }
 
     $scope.signup = function() {
-        $mmUtil.openInBrowser("http://130.211.144.199/");
+        $mmUtil.openInBrowser("http://www.learning.PROZM.com/login/signup.php");
     }
 
     $scope.login = function() {
@@ -76,7 +76,7 @@ angular.module('mm.core.login')
         $mmApp.closeKeyboard();
 
         // Get input data.
-        var siteurl = "http://130.211.144.199",
+        var siteurl = "http://www.learning.PROZM.com",
             username = $scope.credentials.username,
             password = $scope.credentials.password;
 

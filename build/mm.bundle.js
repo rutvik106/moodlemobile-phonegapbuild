@@ -7172,7 +7172,7 @@ angular.module('mm.core.login')
         siteChecked = true;
     }
     $scope.signup = function() {
-        $mmUtil.openInBrowser("http://130.211.144.199/");
+        $mmUtil.openInBrowser("http://www.learning.PROZM.com/login/signup.php");
     }
     $scope.login = function() {
         $mmApp.closeKeyboard();
@@ -15563,7 +15563,7 @@ angular.module('mm.core')
     "wsservice" : "moodle_mobile_app",
     "wsextservice" : "local_mobile",
     "demo_sites": {},
-    "siteurl": "http://130.211.144.199/",
+    "siteurl": "http://www.learning.PROZM.com/",
     "gcmpn": "learn-moodle-1159"
 }
 );
